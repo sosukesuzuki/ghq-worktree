@@ -1,6 +1,6 @@
 {
   "name": "ghq-worktree",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A CLI tool for managing git worktrees with ghq repository organization",
   "type": "module",
   "main": "dist/index.js",
