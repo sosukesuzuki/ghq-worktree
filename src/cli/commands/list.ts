@@ -47,8 +47,8 @@ export const listCommand = define({
         return;
       }
 
-      // Sort by slot number
-      worktrees.sort((a, b) => a.slot - b.slot);
+      // Sort by branch name
+      worktrees.sort((a, b) => a.slot.localeCompare(b.slot));
 
       console.log(
         `📋 Found ${worktrees.length} worktree${worktrees.length === 1 ? "" : "s"}:`,
@@ -59,8 +59,9 @@ export const listCommand = define({
         const exists = existsSync(worktree.path);
         const status = exists ? "✅" : "❌";
 
-        console.log(`${status} Slot ${worktree.slot}: ${worktree.repository}`);
-        console.log(`   Branch: ${worktree.branch}`);
+        console.log(
+          `${status} Branch ${worktree.branch}: ${worktree.repository}`,
+        );
         console.log(`   Path: ${worktree.path}`);
 
         if (verbose) {

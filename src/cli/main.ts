@@ -26,7 +26,7 @@ const mainCommand = {
     );
     console.log("  switch    Switch to worktree directory");
     console.log(
-      "  remove    Remove worktree by slot number or remove all worktrees",
+      "  remove    Remove worktree by branch name or remove all worktrees",
     );
     console.log(
       "  cleanup   Clean up invalid worktrees and orphaned configuration entries",
@@ -48,10 +48,10 @@ const mainCommand = {
       "  ghq-wt list                               # Show all worktrees",
     );
     console.log(
-      "  ghq-wt switch my-repo 1                   # Switch to slot 1 of repository",
+      "  ghq-wt switch -b feature/auth             # Switch to feature/auth branch",
     );
     console.log(
-      "  ghq-wt remove 1                           # Remove worktree in slot 1",
+      "  ghq-wt remove -b feature/auth             # Remove worktree for feature/auth",
     );
     console.log(
       "  ghq-wt status                             # Show detailed status",

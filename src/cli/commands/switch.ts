@@ -17,32 +17,32 @@ export const switchCommand = define({
       short: "r",
       description: "Repository query",
     },
-    slot: {
-      type: "number" as const,
-      short: "s",
-      description: "Slot number to switch to",
+    branch: {
+      type: "string" as const,
+      short: "b",
+      description: "Branch name to switch to",
     },
   },
   run: async (ctx) => {
-    const { repository: repoQuery, slot } = ctx.values;
+    const { repository: repoQuery, branch } = ctx.values;
 
-    if (!repoQuery && !slot) {
-      throw new GhqWorktreeError("Either repository or slot must be specified");
+    if (!repoQuery && !branch) {
+      throw new GhqWorktreeError(
+        "Either repository or branch must be specified",
+      );
     }
 
     try {
       let worktreePath: string | undefined;
 
-      if (slot) {
-        // Switch by slot number
-        const worktree = await getWorktreeBySlot(slot);
+      if (branch) {
+        // Switch by branch name
+        const worktree = await getWorktreeBySlot(branch);
         if (!worktree) {
-          throw new GhqWorktreeError(`No worktree found for slot ${slot}`);
+          throw new GhqWorktreeError(`No worktree found for branch ${branch}`);
         }
         worktreePath = worktree.path;
-        console.log(
-          `🔄 Switching to slot ${slot}: ${worktree.repository} (${worktree.branch})`,
-        );
+        console.log(`🔄 Switching to branch ${branch}: ${worktree.repository}`);
       } else if (repoQuery) {
         // Switch by repository (use first available worktree)
         const repo = await findRepository(repoQuery);
@@ -57,24 +57,24 @@ export const switchCommand = define({
           );
         }
 
-        // Use the first worktree (sorted by slot)
-        worktrees.sort((a, b) => a.slot - b.slot);
+        // Use the first worktree (sorted by branch)
+        worktrees.sort((a, b) => a.slot.localeCompare(b.slot));
         const worktree = worktrees[0]!;
         worktreePath = worktree.path;
 
         if (worktrees.length > 1) {
           console.log(
-            `🔄 Multiple worktrees found for ${repo.name}, switching to slot ${worktree.slot} (${worktree.branch})`,
+            `🔄 Multiple worktrees found for ${repo.name}, switching to branch ${worktree.branch}`,
           );
           console.log(
-            `   Other slots: ${worktrees
+            `   Other branches: ${worktrees
               .slice(1)
-              .map((w) => `${w.slot} (${w.branch})`)
+              .map((w) => w.branch)
               .join(", ")}`,
           );
         } else {
           console.log(
-            `🔄 Switching to ${repo.name} worktree: slot ${worktree.slot} (${worktree.branch})`,
+            `🔄 Switching to ${repo.name} worktree: branch ${worktree.branch}`,
           );
         }
       }

@@ -6,7 +6,7 @@ A CLI tool for managing git worktrees with [ghq](https://github.com/x-motemen/gh
 
 - 🌳 **Git worktree management**: Create, list, switch, and remove git worktrees
 - 📁 **ghq integration**: Seamlessly works with ghq-managed repositories
-- 🎯 **Slot-based organization**: Organize worktrees in numbered slots (`~/ghq-worktree-1/`, `~/ghq-worktree-2/`, etc.)
+- 🎯 **Branch-based organization**: Organize worktrees by branch names (`~/ghq-worktree-feature_auth/`, `~/ghq-worktree-hotfix_bug/`, etc.)
 - 🔍 **Fuzzy repository search**: Find repositories by partial names or paths
 - 🧹 **Automatic cleanup**: Detect and remove invalid or orphaned worktrees
 - ⚙️ **Configuration management**: Persistent settings via JSON configuration file
@@ -43,10 +43,10 @@ ghq-wt add <repository> <branch> [options]
 ghq-wt list [repository] [options]
 
 # Switch to a worktree
-ghq-wt switch <repository|slot> [options]
+ghq-wt switch <repository|branch> [options]
 
 # Remove a worktree
-ghq-wt remove <slot|"all"> [options]
+ghq-wt remove <branch|"all"> [options]
 
 # Clean up invalid worktrees
 ghq-wt cleanup [options]
@@ -72,7 +72,6 @@ ghq-wt add <repository> <branch> [options]
 
 **Options:**
 
-- `-s, --slot <number>` - Specific slot number (auto-assigned if omitted)
 - `-c, --create` - Create branch if it does not exist
 - `-h, --help` - Display help for command
 
@@ -82,11 +81,12 @@ ghq-wt add <repository> <branch> [options]
 # Create worktree for existing branch
 ghq-wt add my-project feature/auth-improvement
 
-# Create worktree with specific slot
-ghq-wt add my-project hotfix/urgent-bug --slot 3
-
 # Create new branch and worktree
 ghq-wt add my-project feature/new-feature --create
+
+# Multiple repositories with same branch name will share the same slot
+ghq-wt add repo-a feature/auth
+ghq-wt add repo-b feature/auth  # Goes into same slot as repo-a
 ```
 
 ### `list` - List Worktrees
@@ -124,13 +124,13 @@ ghq-wt list --verbose
 Switch to a worktree directory (prints path for shell navigation).
 
 ```bash
-ghq-wt switch <repository|slot> [options]
+ghq-wt switch <repository|branch> [options]
 ```
 
 **Arguments:**
 
 - `repository` - Repository query
-- `slot` - Slot number to switch to
+- `branch` - Branch name to switch to
 
 **Options:**
 
@@ -142,8 +142,8 @@ ghq-wt switch <repository|slot> [options]
 # Switch by repository (uses first available worktree)
 ghq-wt switch my-project
 
-# Switch by slot number
-ghq-wt switch --slot 2
+# Switch by branch name
+ghq-wt switch --branch feature/auth
 
 # Shell integration helper function
 gw() { cd "$(ghq-wt switch "$@" | grep "^📁 Path:" | cut -d" " -f3-)"; }
@@ -151,15 +151,15 @@ gw() { cd "$(ghq-wt switch "$@" | grep "^📁 Path:" | cut -d" " -f3-)"; }
 
 ### `remove` - Remove Worktree
 
-Remove worktree by slot number or remove all worktrees.
+Remove worktree by branch name or remove all worktrees.
 
 ```bash
-ghq-wt remove <slot|"all"> [options]
+ghq-wt remove <branch|"all"> [options]
 ```
 
 **Arguments:**
 
-- `slot` - Slot number to remove, or "all" to remove all worktrees
+- `branch` - Branch name to remove, or "all" to remove all worktrees
 
 **Options:**
 
@@ -170,17 +170,17 @@ ghq-wt remove <slot|"all"> [options]
 **Examples:**
 
 ```bash
-# Remove specific worktree
-ghq-wt remove 1
+# Remove specific worktree by branch name
+ghq-wt remove --branch feature/auth
 
 # Force remove with uncommitted changes
-ghq-wt remove 2 --force
+ghq-wt remove --branch hotfix/bug --force
 
 # Remove all worktrees
 ghq-wt remove all
 
 # Remove from config only
-ghq-wt remove 1 --config-only
+ghq-wt remove --branch feature/auth --config-only
 ```
 
 ### `cleanup` - Clean Up Invalid Worktrees
@@ -241,10 +241,10 @@ The tool uses a JSON configuration file located at `~/.ghq-worktree.json`:
   "worktrees": {
     "wt_1234567890_abc123": {
       "id": "wt_1234567890_abc123",
-      "slot": 1,
+      "slot": "feature/new-feature",
       "repository": "github.com/user/repo",
       "branch": "feature/new-feature",
-      "path": "/Users/user/ghq-worktree-1/user/repo",
+      "path": "/Users/user/ghq-worktree-feature_new-feature/user/repo",
       "created": "2024-01-15T10:30:00.000Z"
     }
   },
@@ -258,17 +258,17 @@ The tool uses a JSON configuration file located at `~/.ghq-worktree.json`:
 
 **Configuration Options:**
 
-- `maxSlots` - Maximum number of parallel worktree slots (default: 5)
+- `maxSlots` - Maximum number of parallel worktree slots (default: 5, not enforced in branch-based mode)
 - `baseDir` - Base directory for worktree creation (default: home directory)
 - `ghqRoot` - Path to ghq root directory (auto-detected)
 
 ## Directory Structure
 
 ```
-~/ghq/github.com/user/repo/          # Main repository (ghq-managed)
-~/ghq-worktree-1/user/repo/          # Worktree slot 1
-~/ghq-worktree-2/user/repo/          # Worktree slot 2
-~/ghq-worktree-3/user/repo/          # Worktree slot 3
+~/ghq/github.com/user/repo/               # Main repository (ghq-managed)
+~/ghq-worktree-feature_auth/user/repo/    # Worktree for feature/auth branch
+~/ghq-worktree-hotfix_bug/user/repo/      # Worktree for hotfix/bug branch
+~/ghq-worktree-main/user/repo/            # Worktree for main branch
 ```
 
 ## Shell Integration
@@ -291,8 +291,8 @@ gw() {
 Then use:
 
 ```bash
-gw my-project      # Switch to first worktree of my-project
-gw --slot 2        # Switch to worktree in slot 2
+gw my-project              # Switch to first worktree of my-project
+gw --branch feature/auth   # Switch to feature/auth branch worktree
 ```
 
 ## Error Handling
@@ -306,9 +306,8 @@ Common error scenarios:
 
 - Repository not found in ghq
 - Branch does not exist (use `--create` to create)
-- Slot already in use
-- No available slots (increase `maxSlots` in config)
 - Worktree path does not exist
+- Branch name contains invalid characters
 
 ## Development
 
@@ -335,21 +334,21 @@ pnpm start
 ghq-wt add my-app feature/user-authentication
 
 # 2. Create another worktree for bug fix
-ghq-wt add my-app hotfix/login-issue --slot 2
+ghq-wt add my-app hotfix/login-issue
 
 # 3. List current worktrees
 ghq-wt list my-app
 
 # 4. Switch between worktrees
-ghq-wt switch my-app     # Switch to slot 1 (feature branch)
-ghq-wt switch --slot 2   # Switch to slot 2 (hotfix branch)
+ghq-wt switch my-app                          # Switch to first available (feature branch)
+ghq-wt switch --branch hotfix/login-issue     # Switch to hotfix branch
 
 # 5. Check status
 ghq-wt status
 
 # 6. Clean up when done
-ghq-wt remove 1
-ghq-wt remove 2
+ghq-wt remove --branch feature/user-authentication
+ghq-wt remove --branch hotfix/login-issue
 ```
 
 ### Working with Multiple Projects

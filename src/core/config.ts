@@ -81,7 +81,7 @@ export async function removeWorktreeFromConfig(id: string): Promise<void> {
 }
 
 export async function getWorktreeBySlot(
-  slot: number,
+  slot: string,
 ): Promise<WorktreeInfo | null> {
   const config = await loadConfig();
   const worktree = Object.values(config.worktrees).find((w) => w.slot === slot);
@@ -89,7 +89,7 @@ export async function getWorktreeBySlot(
 }
 
 export async function getWorktreesBySlot(
-  slot: number,
+  slot: string,
 ): Promise<WorktreeInfo[]> {
   const config = await loadConfig();
   return Object.values(config.worktrees).filter((w) => w.slot === slot);
@@ -109,23 +109,12 @@ export async function getAllWorktrees(): Promise<WorktreeInfo[]> {
   return Object.values(config.worktrees);
 }
 
-export async function findAvailableSlot(): Promise<number> {
-  const config = await loadConfig();
-  const usedSlots = new Set(Object.values(config.worktrees).map((w) => w.slot));
-
-  for (let slot = 1; slot <= config.config.maxSlots; slot++) {
-    if (!usedSlots.has(slot)) {
-      return slot;
-    }
-  }
-
-  throw new GhqWorktreeError(
-    `No available slots. Maximum slots: ${config.config.maxSlots}`,
-  );
+export async function findSlotByBranch(branch: string): Promise<string> {
+  return branch;
 }
 
 export async function isSlotAvailable(
-  slot: number,
+  slot: string,
   repository?: string,
 ): Promise<boolean> {
   const config = await loadConfig();

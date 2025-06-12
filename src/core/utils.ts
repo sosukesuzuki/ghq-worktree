@@ -76,19 +76,20 @@ export function generateWorktreeId(): string {
   return `wt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 }
 
-export function validateSlotNumber(slot: number): void {
-  if (!Number.isInteger(slot) || slot < 1) {
+export function validateBranchName(branch: string): void {
+  if (!branch || branch.trim() === "") {
     throw new GhqWorktreeError(
-      `Invalid slot number: ${slot}. Must be a positive integer.`,
+      `Invalid branch name: ${branch}. Must be a non-empty string.`,
     );
   }
 }
 
 export function formatWorktreePath(
   baseDir: string,
-  slot: number,
+  slot: string,
   owner: string,
   repo: string,
 ): string {
-  return `${baseDir}/ghq-worktree-${slot}/${owner}/${repo}`;
+  const sanitizedSlot = slot.replace(/[^a-zA-Z0-9-_]/g, "_");
+  return `${baseDir}/ghq-worktree-${sanitizedSlot}/${owner}/${repo}`;
 }

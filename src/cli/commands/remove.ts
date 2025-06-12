@@ -11,11 +11,12 @@ import { GhqWorktreeError } from "../../types/index.js";
 
 export const removeCommand = define({
   name: "remove",
-  description: "Remove worktree by slot number or remove all worktrees",
+  description: "Remove worktree by branch name or remove all worktrees",
   args: {
-    slot: {
+    branch: {
       type: "string" as const,
-      description: 'Slot number to remove, or "all" to remove all worktrees',
+      short: "b",
+      description: 'Branch name to remove, or "all" to remove all worktrees',
     },
     force: {
       type: "boolean" as const,
@@ -28,22 +29,24 @@ export const removeCommand = define({
     },
   },
   run: async (ctx) => {
-    const { slot: slotInput, force, "config-only": configOnly } = ctx.values;
+    const {
+      branch: branchInput,
+      force,
+      "config-only": configOnly,
+    } = ctx.values;
 
-    // Default to "all" if no slot is provided
-    const effectiveSlotInput = slotInput || "all";
+    // Default to "all" if no branch is provided
+    const effectiveBranchInput = branchInput || "all";
 
     try {
-      if (effectiveSlotInput === "all") {
+      if (effectiveBranchInput === "all") {
         await removeAllWorktrees(force || false, configOnly || false);
       } else {
-        const slot = parseInt(effectiveSlotInput, 10);
-        if (isNaN(slot) || slot < 1) {
-          throw new GhqWorktreeError(
-            `Invalid slot number: ${effectiveSlotInput}`,
-          );
-        }
-        await removeSingleWorktree(slot, force || false, configOnly || false);
+        await removeSingleWorktree(
+          effectiveBranchInput,
+          force || false,
+          configOnly || false,
+        );
       }
     } catch (error) {
       if (error instanceof GhqWorktreeError) {
@@ -56,17 +59,17 @@ export const removeCommand = define({
 });
 
 async function removeSingleWorktree(
-  slot: number,
+  branch: string,
   force: boolean,
   configOnly: boolean,
 ): Promise<void> {
-  const worktrees = await getWorktreesBySlot(slot);
+  const worktrees = await getWorktreesBySlot(branch);
   if (worktrees.length === 0) {
-    throw new GhqWorktreeError(`No worktree found for slot ${slot}`);
+    throw new GhqWorktreeError(`No worktree found for branch ${branch}`);
   }
 
   console.log(
-    `🗑️  Removing ${worktrees.length} worktree${worktrees.length === 1 ? "" : "s"} from slot ${slot}:`,
+    `🗑️  Removing ${worktrees.length} worktree${worktrees.length === 1 ? "" : "s"} from branch ${branch}:`,
   );
 
   for (const worktree of worktrees) {
@@ -121,9 +124,7 @@ async function removeAllWorktrees(
   console.log();
 
   for (const worktree of worktrees) {
-    console.log(
-      `📁 Slot ${worktree.slot}: ${worktree.repository} (${worktree.branch})`,
-    );
+    console.log(`📁 Branch ${worktree.branch}: ${worktree.repository}`);
 
     const exists = existsSync(worktree.path);
 

@@ -7,13 +7,12 @@ import {
 } from "../../core/git.js";
 import {
   addWorktree,
-  findAvailableSlot,
-  isSlotAvailable,
+  findSlotByBranch,
   loadConfig,
 } from "../../core/config.js";
 import {
   generateWorktreeId,
-  validateSlotNumber,
+  validateBranchName,
   formatWorktreePath,
 } from "../../core/utils.js";
 import { WorktreeInfo, GhqWorktreeError } from "../../types/index.js";
@@ -34,11 +33,6 @@ export const addCommand = define({
       description: "Branch name to checkout",
       required: true,
     },
-    slot: {
-      type: "number" as const,
-      short: "s",
-      description: "Specific slot number (auto-assigned if omitted)",
-    },
     create: {
       type: "boolean" as const,
       short: "c",
@@ -46,12 +40,7 @@ export const addCommand = define({
     },
   },
   run: async (ctx) => {
-    const {
-      repository: repoQuery,
-      branch,
-      slot: requestedSlot,
-      create,
-    } = ctx.values;
+    const { repository: repoQuery, branch, create } = ctx.values;
 
     if (!repoQuery) {
       throw new GhqWorktreeError(
@@ -72,19 +61,9 @@ export const addCommand = define({
       }
       console.log(`✅ Found repository: ${repo.name} at ${repo.fullPath}`);
 
-      // Determine slot
-      let slot: number;
-      if (requestedSlot) {
-        validateSlotNumber(requestedSlot);
-        if (!(await isSlotAvailable(requestedSlot, repo.relativePath))) {
-          throw new GhqWorktreeError(
-            `Slot ${requestedSlot} is already in use for repository ${repo.name}`,
-          );
-        }
-        slot = requestedSlot;
-      } else {
-        slot = await findAvailableSlot();
-      }
+      // Determine slot (use branch name as slot)
+      validateBranchName(branch);
+      const slot = await findSlotByBranch(branch);
 
       // Check branch existence
       const localBranchExists = await branchExists(repo.fullPath, branch);

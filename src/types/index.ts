@@ -1,6 +1,6 @@
 export interface WorktreeInfo {
   id: string;
-  slot: number;
+  slot: string;
   repository: string;
   branch: string;
   path: string;

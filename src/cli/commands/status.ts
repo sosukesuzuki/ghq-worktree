@@ -44,20 +44,12 @@ export const statusCommand = define({
       console.log(`   Max slots: ${config.config.maxSlots}`);
       console.log();
 
-      // Slot usage
-      const usedSlots = new Set(worktrees.map((w) => w.slot));
-      const availableSlots = [];
-      for (let i = 1; i <= config.config.maxSlots; i++) {
-        if (!usedSlots.has(i)) {
-          availableSlots.push(i);
-        }
-      }
+      // Branch usage
+      const usedBranches = new Set(worktrees.map((w) => w.slot));
 
-      console.log(`📈 Slot Usage:`);
-      console.log(`   Used slots: ${usedSlots.size}/${config.config.maxSlots}`);
-      console.log(
-        `   Available slots: ${availableSlots.length > 0 ? availableSlots.join(", ") : "none"}`,
-      );
+      console.log(`📈 Branch Usage:`);
+      console.log(`   Total worktrees: ${worktrees.length}`);
+      console.log(`   Unique branches: ${usedBranches.size}`);
       console.log();
 
       if (worktrees.length === 0) {
@@ -71,7 +63,7 @@ export const statusCommand = define({
       }
 
       // Worktree details
-      worktrees.sort((a, b) => a.slot - b.slot);
+      worktrees.sort((a, b) => a.slot.localeCompare(b.slot));
 
       console.log(`📋 Worktrees (${worktrees.length}):`);
       console.log();
@@ -86,8 +78,9 @@ export const statusCommand = define({
         if (exists) validCount++;
         else invalidCount++;
 
-        console.log(`${status} Slot ${worktree.slot}: ${worktree.repository}`);
-        console.log(`   Branch: ${worktree.branch}`);
+        console.log(
+          `${status} Branch ${worktree.branch}: ${worktree.repository}`,
+        );
         console.log(`   Path: ${worktree.path}`);
         console.log(
           `   Created: ${new Date(worktree.created).toLocaleString()}`,
@@ -129,13 +122,6 @@ export const statusCommand = define({
       if (invalidCount > 0) {
         console.log();
         console.log(`💡 Use "ghq-wt cleanup" to remove invalid worktrees.`);
-      }
-
-      if (availableSlots.length === 0 && config.config.maxSlots < 10) {
-        console.log();
-        console.log(
-          `💡 All slots are used. Consider increasing maxSlots in the config.`,
-        );
       }
     } catch (error) {
       if (error instanceof GhqWorktreeError) {
