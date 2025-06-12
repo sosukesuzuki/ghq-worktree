@@ -25,10 +25,12 @@ export const addCommand = define({
     repository: {
       type: "string" as const,
       description: "Repository query (fuzzy search supported)",
+      required: true,
     },
     branch: {
       type: "string" as const,
       description: "Branch name to checkout",
+      required: true,
     },
     slot: {
       type: "number" as const,
@@ -49,8 +51,12 @@ export const addCommand = define({
       create,
     } = ctx.values;
 
-    if (!repoQuery || !branch) {
-      throw new GhqWorktreeError("Repository and branch are required");
+    if (!repoQuery) {
+      throw new GhqWorktreeError("Repository is required. Use --repository <repo>");
+    }
+    
+    if (!branch) {
+      throw new GhqWorktreeError("Branch is required. Use --branch <branch>");
     }
 
     try {

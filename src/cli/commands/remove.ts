@@ -16,6 +16,7 @@ export const removeCommand = define({
     slot: {
       type: "string" as const,
       description: 'Slot number to remove, or "all" to remove all worktrees',
+      required: true,
     },
     force: {
       type: "boolean" as const,

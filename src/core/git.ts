@@ -62,10 +62,11 @@ export async function createWorktree(
   const args = ["worktree", "add"];
 
   if (createBranch) {
-    args.push("-b", branch);
+    // Create new branch from HEAD (current branch)
+    args.push("-b", branch, worktreePath, "HEAD");
+  } else {
+    args.push(worktreePath, branch);
   }
-
-  args.push(worktreePath, branch);
 
   try {
     const result = await execCommand("git", args, { cwd: repoPath });

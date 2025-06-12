@@ -18,6 +18,7 @@ export const switchCommand = define({
     },
     slot: {
       type: "number" as const,
+      short: "s",
       description: "Slot number to switch to",
     },
   },
