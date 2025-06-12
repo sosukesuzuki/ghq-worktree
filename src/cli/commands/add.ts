@@ -74,8 +74,8 @@ export const addCommand = define({
       let slot: number;
       if (requestedSlot) {
         validateSlotNumber(requestedSlot);
-        if (!(await isSlotAvailable(requestedSlot))) {
-          throw new GhqWorktreeError(`Slot ${requestedSlot} is already in use`);
+        if (!(await isSlotAvailable(requestedSlot, repo.relativePath))) {
+          throw new GhqWorktreeError(`Slot ${requestedSlot} is already in use for repository ${repo.name}`);
         }
         slot = requestedSlot;
       } else {
