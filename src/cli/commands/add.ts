@@ -33,14 +33,9 @@ export const addCommand = define({
       description: "Branch name to checkout",
       required: true,
     },
-    create: {
-      type: "boolean" as const,
-      short: "c",
-      description: "Create branch if it does not exist",
-    },
   },
   run: async (ctx) => {
-    const { repository: repoQuery, branch, create } = ctx.values;
+    const { repository: repoQuery, branch } = ctx.values;
 
     if (!repoQuery) {
       throw new GhqWorktreeError(
@@ -72,11 +67,7 @@ export const addCommand = define({
         branch,
       );
 
-      if (!localBranchExists && !remoteBranchExists && !create) {
-        throw new GhqWorktreeError(
-          `Branch '${branch}' does not exist. Use --create to create a new branch.`,
-        );
-      }
+      const shouldCreateBranch = !localBranchExists && !remoteBranchExists;
 
       // Generate worktree path
       const config = await loadConfig();
@@ -94,7 +85,7 @@ export const addCommand = define({
         repo.fullPath,
         worktreePath,
         branch,
-        create || (!localBranchExists && remoteBranchExists),
+        shouldCreateBranch,
       );
 
       // Save worktree info
@@ -115,7 +106,7 @@ export const addCommand = define({
       console.log(`   Slot: ${slot}`);
       console.log(`   Path: ${worktreePath}`);
 
-      if (create && !localBranchExists && !remoteBranchExists) {
+      if (shouldCreateBranch) {
         console.log(`   ✨ New branch '${branch}' created`);
       }
     } catch (error) {
