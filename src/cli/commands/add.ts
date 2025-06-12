@@ -52,9 +52,11 @@ export const addCommand = define({
     } = ctx.values;
 
     if (!repoQuery) {
-      throw new GhqWorktreeError("Repository is required. Use --repository <repo>");
+      throw new GhqWorktreeError(
+        "Repository is required. Use --repository <repo>",
+      );
     }
-    
+
     if (!branch) {
       throw new GhqWorktreeError("Branch is required. Use --branch <branch>");
     }
