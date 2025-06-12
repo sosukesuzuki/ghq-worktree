@@ -88,6 +88,13 @@ export async function getWorktreeBySlot(
   return worktree || null;
 }
 
+export async function getWorktreesBySlot(
+  slot: number,
+): Promise<WorktreeInfo[]> {
+  const config = await loadConfig();
+  return Object.values(config.worktrees).filter((w) => w.slot === slot);
+}
+
 export async function getWorktreesByRepository(
   repository: string,
 ): Promise<WorktreeInfo[]> {

@@ -1,6 +1,6 @@
 import { define } from "gunshi";
 import {
-  getWorktreeBySlot,
+  getWorktreesBySlot,
   removeWorktreeFromConfig,
   getAllWorktrees,
 } from "../../core/config.js";
@@ -16,7 +16,6 @@ export const removeCommand = define({
     slot: {
       type: "string" as const,
       description: 'Slot number to remove, or "all" to remove all worktrees',
-      required: true,
     },
     force: {
       type: "boolean" as const,
@@ -31,17 +30,18 @@ export const removeCommand = define({
   run: async (ctx) => {
     const { slot: slotInput, force, "config-only": configOnly } = ctx.values;
 
-    if (!slotInput) {
-      throw new GhqWorktreeError('Slot number or "all" is required');
-    }
+    // Default to "all" if no slot is provided
+    const effectiveSlotInput = slotInput || "all";
 
     try {
-      if (slotInput === "all") {
+      if (effectiveSlotInput === "all") {
         await removeAllWorktrees(force || false, configOnly || false);
       } else {
-        const slot = parseInt(slotInput, 10);
+        const slot = parseInt(effectiveSlotInput, 10);
         if (isNaN(slot) || slot < 1) {
-          throw new GhqWorktreeError(`Invalid slot number: ${slotInput}`);
+          throw new GhqWorktreeError(
+            `Invalid slot number: ${effectiveSlotInput}`,
+          );
         }
         await removeSingleWorktree(slot, force || false, configOnly || false);
       }
@@ -60,44 +60,50 @@ async function removeSingleWorktree(
   force: boolean,
   configOnly: boolean,
 ): Promise<void> {
-  const worktree = await getWorktreeBySlot(slot);
-  if (!worktree) {
+  const worktrees = await getWorktreesBySlot(slot);
+  if (worktrees.length === 0) {
     throw new GhqWorktreeError(`No worktree found for slot ${slot}`);
   }
 
-  console.log(`🗑️  Removing worktree from slot ${slot}:`);
-  console.log(`   Repository: ${worktree.repository}`);
-  console.log(`   Branch: ${worktree.branch}`);
-  console.log(`   Path: ${worktree.path}`);
+  console.log(
+    `🗑️  Removing ${worktrees.length} worktree${worktrees.length === 1 ? "" : "s"} from slot ${slot}:`,
+  );
 
-  const exists = existsSync(worktree.path);
+  for (const worktree of worktrees) {
+    console.log(`   Repository: ${worktree.repository}`);
+    console.log(`   Branch: ${worktree.branch}`);
+    console.log(`   Path: ${worktree.path}`);
 
-  if (!configOnly && exists) {
-    // Find the repository to get the main repo path for git commands
-    const repo = await findRepository(worktree.repository);
-    if (!repo) {
-      console.log(`⚠️  Repository not found: ${worktree.repository}`);
-      console.log(`   Removing from config only...`);
-    } else {
-      console.log(`🔄 Removing git worktree...`);
-      try {
-        await removeWorktree(repo.fullPath, worktree.path, force);
-        console.log(`✅ Git worktree removed successfully`);
-      } catch (error) {
-        console.log(
-          `⚠️  Failed to remove git worktree: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
+    const exists = existsSync(worktree.path);
+
+    if (!configOnly && exists) {
+      // Find the repository to get the main repo path for git commands
+      const repo = await findRepository(worktree.repository);
+      if (!repo) {
+        console.log(`   ⚠️  Repository not found: ${worktree.repository}`);
         console.log(`   Removing from config only...`);
+      } else {
+        console.log(`   🔄 Removing git worktree...`);
+        try {
+          await removeWorktree(repo.fullPath, worktree.path, force);
+          console.log(`   ✅ Git worktree removed successfully`);
+        } catch (error) {
+          console.log(
+            `   ⚠️  Failed to remove git worktree: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
+          console.log(`   Removing from config only...`);
+        }
       }
+    } else if (!exists) {
+      console.log(`   ⚠️  Worktree path does not exist: ${worktree.path}`);
+      console.log(`   Removing from config only...`);
     }
-  } else if (!exists) {
-    console.log(`⚠️  Worktree path does not exist: ${worktree.path}`);
-    console.log(`   Removing from config only...`);
-  }
 
-  // Remove from config
-  await removeWorktreeFromConfig(worktree.id);
-  console.log(`✅ Worktree removed from configuration`);
+    // Remove from config
+    await removeWorktreeFromConfig(worktree.id);
+    console.log(`   ✅ Worktree removed from configuration`);
+    console.log();
+  }
 }
 
 async function removeAllWorktrees(
