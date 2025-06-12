@@ -21,14 +21,7 @@ A CLI tool for managing git worktrees with [ghq](https://github.com/x-motemen/gh
 ## Installation
 
 ```bash
-# Clone and build
-git clone <repository-url>
-cd ghq-worktree
-pnpm install
-pnpm build
-
-# Install globally (optional)
-npm link
+npm i -g ghq-worktree
 ```
 
 ## Usage
