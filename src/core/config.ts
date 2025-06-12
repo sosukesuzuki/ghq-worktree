@@ -117,9 +117,14 @@ export async function findAvailableSlot(): Promise<number> {
   );
 }
 
-export async function isSlotAvailable(slot: number, repository?: string): Promise<boolean> {
+export async function isSlotAvailable(
+  slot: number,
+  repository?: string,
+): Promise<boolean> {
   const config = await loadConfig();
-  return !Object.values(config.worktrees).some((w) => w.slot === slot && (!repository || w.repository === repository));
+  return !Object.values(config.worktrees).some(
+    (w) => w.slot === slot && (!repository || w.repository === repository),
+  );
 }
 
 export async function updateConfig(
