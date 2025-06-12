@@ -24,11 +24,13 @@ export const addCommand = define({
   args: {
     repository: {
       type: "string" as const,
+      short: "r",
       description: "Repository query (fuzzy search supported)",
       required: true,
     },
     branch: {
       type: "string" as const,
+      short: "b",
       description: "Branch name to checkout",
       required: true,
     },

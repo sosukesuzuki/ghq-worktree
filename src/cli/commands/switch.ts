@@ -14,6 +14,7 @@ export const switchCommand = define({
   args: {
     repository: {
       type: "string" as const,
+      short: "r",
       description: "Repository query",
     },
     slot: {

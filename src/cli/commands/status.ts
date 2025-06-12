@@ -11,6 +11,7 @@ export const statusCommand = define({
   args: {
     repository: {
       type: "string" as const,
+      short: "r",
       description:
         "Repository query to show status for specific repository only",
     },

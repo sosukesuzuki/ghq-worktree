@@ -14,6 +14,7 @@ export const listCommand = define({
   args: {
     repository: {
       type: "string" as const,
+      short: "r",
       description: "Repository query to filter worktrees (optional)",
     },
     verbose: {
