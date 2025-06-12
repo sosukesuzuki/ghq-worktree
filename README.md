@@ -72,7 +72,6 @@ ghq-wt add <repository> <branch> [options]
 
 **Options:**
 
-- `-c, --create` - Create branch if it does not exist
 - `-h, --help` - Display help for command
 
 **Examples:**
@@ -81,8 +80,8 @@ ghq-wt add <repository> <branch> [options]
 # Create worktree for existing branch
 ghq-wt add my-project feature/auth-improvement
 
-# Create new branch and worktree
-ghq-wt add my-project feature/new-feature --create
+# Create worktree (automatically creates branch if it doesn't exist)
+ghq-wt add my-project feature/new-feature
 
 # Multiple repositories with same branch name will share the same slot
 ghq-wt add repo-a feature/auth
@@ -305,7 +304,6 @@ The tool provides clear error messages and appropriate exit codes:
 Common error scenarios:
 
 - Repository not found in ghq
-- Branch does not exist (use `--create` to create)
 - Worktree path does not exist
 - Branch name contains invalid characters
 
