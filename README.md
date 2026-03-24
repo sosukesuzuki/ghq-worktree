@@ -1,5 +1,7 @@
 # ghq-worktree
 
+[![Hypercommit](https://img.shields.io/badge/Hypercommit-DB2475)](https://hypercommit.com/ghq-worktree)
+
 A CLI tool for managing git worktrees with [ghq](https://github.com/x-motemen/ghq) repository organization. This tool enables efficient parallel development workflows by creating isolated worktrees while maintaining the organized structure that ghq provides.
 
 ## Features
